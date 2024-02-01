@@ -20,9 +20,9 @@ class Basket(pygame.sprite.Sprite):
         self.rect.centerx += deltax
 
 
-class Chick(pygame.sprite.Sprite):
+class Chick_y(pygame.sprite.Sprite):
     def __init__(self):
-        super(Chick,self).__init__()
+        super(Chick_y,self).__init__()
         self.speed = 1
         self.x = random.randint(60,300)
         self.y = random.randint(60,200)
@@ -43,8 +43,43 @@ class Chick(pygame.sprite.Sprite):
     def relocate(self):
         self.rect = self.image.get_rect(center=(random.randint(60, 300), random.randint(60,200)))
 
-   
+class Chick_b(pygame.sprite.Sprite):
+    def __init__(self):
+        super(Chick_b,self).__init__()
+        self.speed = 1
+        self.x = random.randint(80,300)
+        self.y = random.randint(60,200)
+        blue_files_l = ["blue/bluechickwingsdown.png","blue/bluechickwingsup.png"]
+        blue_files_r = ["blue/bluechickwingsdown-1.png","blue/bluechickwingsup-1.png"]
+        self.pics_l = [pygame.image.load(img) for img in blue_files_l]
+        self.pics_r = [pygame.image.load(img) for img in blue_files_r]
+        self.image = self.pics_l[0]
+        self.index = 0
+        self.image = pygame.transform.scale(self.image, (70,60))
+        self.rect = self.image.get_rect(center=(self.x,self.y))
+        self.heading = "left"
+    
+    def move(self):
+        self.index+=1
+        if self.heading == "left":
+            self.image = self.pics_l[self.index%2]
+            self.image = pygame.transform.scale(self.image, (70,60))
+            if self.rect.left >10:
+                self.rect.centerx += -4
+            self.rect.centery += 2
+            if self.index%(random.randint(5,20)) == 0:
+                self.heading = "right"
+        elif self.heading == "right":
+            self.image = self.pics_r[self.index%2]
+            self.image = pygame.transform.scale(self.image, (70,60))
+            if self.rect.right < 400:
+                self.rect.centerx += 4
+            self.rect.centery += 2
+            if self.index%(random.randint(5,20)) == 0:
+                self.heading = "left"
 
+    def relocate(self):
+        self.rect = self.image.get_rect(center=(random.randint(60, 300), random.randint(60,200)))
 
 
 
@@ -62,6 +97,8 @@ pygame.display.set_caption("Pygame Tutorial")
 WHITE = (255, 255, 255)
 BLUE = (0, 0, 255)
 BLACK = (0, 0, 0)
+RED = (255,0,0)
+GREEN = (0,255,0)
 
 # Create clock to later control frame rate
 clock = pygame.time.Clock()
@@ -71,9 +108,14 @@ basket = Basket()
 baskets = pygame.sprite.Group()
 baskets.add(basket)
 
-chicks = pygame.sprite.Group()
+chicks_y = pygame.sprite.Group()
 for i in range(5):
-    chicks.add(Chick())
+    chicks_y.add(Chick_y())
+
+
+chicks_b = pygame.sprite.Group()
+for i in range(5):
+    chicks_b.add(Chick_b())
 
 # Creating Score Values
 dropped = 0
@@ -81,10 +123,9 @@ points = 0
 
 # Setting up Font Surfaces for Scoreboard
 font = pygame.font.SysFont(None, 32)
-score = font.render("Score: " + str(points), True, BLUE)
-screen.blit(score, (20, 20))
 
-
+lost = font.render("YOU LOST", True, RED)
+win = font.render("YOU WIN", True, GREEN)
 
 # Main game loop
 running = True
@@ -98,31 +139,60 @@ while running:
     screen.fill(WHITE)
     score = font.render("Score: " + str(points), True, BLUE)
     screen.blit(score, (0, 0))
+
+    errors = font.render("Dropped: " + str(dropped), True, RED)
+    screen.blit(errors, (250,0))
         # Get the state of all keys
     keys = pygame.key.get_pressed()
     if keys[pygame.K_LEFT]:
-        basket.move(-4,0)
+        basket.move(-8,0)
         
     if keys[pygame.K_RIGHT]:
-        basket.move(4,0)
+        basket.move(8,0)
 
-    for chick in chicks:
-        if points>10:
-            chick.speed = points/10
-        chick.move(0,1)
-        # if chick.rect.colliderect(basket.rect):
-        if chick.rect.bottom < 520:
-            if pygame.sprite.collide_mask(chick,basket):
-                points += 1
+
+    if points <= 50:
+        for chick in chicks_y:
+            if points>20:
+                chick.speed = points/20
+            chick.move(0,1)
+            if chick.rect.bottom < 520:
+                if pygame.sprite.collide_mask(chick,basket):
+                    points += 1
+                    chick.relocate()
+            if chick.rect.bottom > 600:
+                dropped += 1
                 chick.relocate()
+        chicks_y.draw(screen)
 
-        if chick.rect.bottom > 600:
-            dropped += 1
-            chick.relocate()
-
-    
+    if points > 50:
+        for chick in chicks_y:
+            chick.kill()
+        for chick in chicks_b:
+            chick.move()
+            if chick.rect.bottom < 520:
+                if pygame.sprite.collide_mask(chick,basket):
+                    points += 1
+                    chick.relocate()
+            if chick.rect.bottom > 600:
+                dropped += 1
+                chick.relocate()
+        chicks_b.draw(screen)
+        
     baskets.draw(screen)
-    chicks.draw(screen)
+
+
+    if points >= 80:
+        for chick in chicks_b:
+            chick.kill()
+        screen.blit(win,(140,250))
+    if dropped >= 10:
+        for chick in chicks_b:
+            chick.kill()
+        for chick in chicks_y:
+            chick.kill()
+        screen.blit(lost,(150,250))
+        
     # Update the display
     pygame.display.flip()
 
