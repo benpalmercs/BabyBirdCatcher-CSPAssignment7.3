@@ -14,10 +14,14 @@ class Basket(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.image, (100,70))
 
     def move(self, deltax, deltay):
-        if self.rect.left < 0 or self.rect.right>650:
-            deltax *= -3
+        if self.rect.left > 0 and self.rect.right < 650:
+            self.rect.centerx += deltax
+        elif self.rect.left <= 0:
+            self.rect.centerx +=1
+        elif self.rect.right >= 650:
+            self.rect.centerx -= 1
+            
         
-        self.rect.centerx += deltax
 
 
 class Chick_y(pygame.sprite.Sprite):
@@ -33,12 +37,11 @@ class Chick_y(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.image, (70,60))
         self.rect = self.image.get_rect(center=(self.x,self.y))
 
-    def move(self,deltax,deltay):
+    def move(self):
         self.index+=1
         self.image = self.pics[self.index%2]
         self.image = pygame.transform.scale(self.image, (70,60))
-        self.rect.centerx += deltax
-        self.rect.centery += deltay*self.speed
+        self.rect.centery += 1*self.speed
 
     def relocate(self):
         self.rect = self.image.get_rect(center=(random.randint(60, 300), random.randint(60,200)))
@@ -99,6 +102,7 @@ BLUE = (0, 0, 255)
 BLACK = (0, 0, 0)
 RED = (255,0,0)
 GREEN = (0,255,0)
+SKY = (85,156,187)
 
 # Create clock to later control frame rate
 clock = pygame.time.Clock()
@@ -117,6 +121,11 @@ chicks_b = pygame.sprite.Group()
 for i in range(5):
     chicks_b.add(Chick_b())
 
+chicks_all = pygame.sprite.Group()
+chicks_all.add(chicks_y)
+chicks_all.add(chicks_b)
+
+
 # Creating Score Values
 dropped = 0
 points = 0
@@ -126,7 +135,8 @@ font = pygame.font.SysFont(None, 32)
 
 lost = font.render("YOU LOST", True, RED)
 win = font.render("YOU WIN", True, GREEN)
-
+intro1 = font.render("Catch 80 chicks to win", True, GREEN)
+intro2 = font.render("Without dropping 10", True, RED)
 # Main game loop
 running = True
 while running:
@@ -136,12 +146,16 @@ while running:
             running = False
 
     # Fill the screen with a color (e.g., white)
-    screen.fill(WHITE)
+    screen.fill(SKY)
     score = font.render("Score: " + str(points), True, BLUE)
     screen.blit(score, (0, 0))
 
+    if points<1:
+        screen.blit(intro1,(75,250))
+        screen.blit(intro2,(85,280))
+
     errors = font.render("Dropped: " + str(dropped), True, RED)
-    screen.blit(errors, (250,0))
+    screen.blit(errors, (270,0))
         # Get the state of all keys
     keys = pygame.key.get_pressed()
     if keys[pygame.K_LEFT]:
@@ -151,11 +165,11 @@ while running:
         basket.move(8,0)
 
 
-    if points <= 50:
+    if points < 50:
         for chick in chicks_y:
             if points>20:
                 chick.speed = points/20
-            chick.move(0,1)
+            chick.move()
             if chick.rect.bottom < 520:
                 if pygame.sprite.collide_mask(chick,basket):
                     points += 1
@@ -165,7 +179,7 @@ while running:
                 chick.relocate()
         chicks_y.draw(screen)
 
-    if points > 50:
+    if points >= 50:
         for chick in chicks_y:
             chick.kill()
         for chick in chicks_b:
@@ -183,13 +197,11 @@ while running:
 
 
     if points >= 80:
-        for chick in chicks_b:
+        for chick in chicks_all:
             chick.kill()
         screen.blit(win,(140,250))
     if dropped >= 10:
-        for chick in chicks_b:
-            chick.kill()
-        for chick in chicks_y:
+        for chick in chicks_all:
             chick.kill()
         screen.blit(lost,(150,250))
         
