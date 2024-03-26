@@ -30,7 +30,7 @@ class Chick_y(pygame.sprite.Sprite):
         self.speed = 1
         self.x = random.randint(60,300)
         self.y = random.randint(60,200)
-        yellow_files = ["yellow/chickwingsdown.png","yellow/chickwingsup.png"]
+        yellow_files = ["chickwingsdown.png","chickwingsup.png"]
         self.pics = [pygame.image.load(img) for img in yellow_files]
         self.index = 0
         self.image = self.pics[0]
@@ -52,8 +52,8 @@ class Chick_b(pygame.sprite.Sprite):
         self.speed = 1
         self.x = random.randint(80,300)
         self.y = random.randint(60,200)
-        blue_files_l = ["blue/bluechickwingsdown.png","blue/bluechickwingsup.png"]
-        blue_files_r = ["blue/bluechickwingsdown-1.png","blue/bluechickwingsup-1.png"]
+        blue_files_l = ["bluechickwingsdown.png","bluechickwingsup.png"]
+        blue_files_r = ["bluechickwingsdown-1.png","bluechickwingsup-1.png"]
         self.pics_l = [pygame.image.load(img) for img in blue_files_l]
         self.pics_r = [pygame.image.load(img) for img in blue_files_r]
         self.image = self.pics_l[0]
